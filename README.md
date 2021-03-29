@@ -1,5 +1,5 @@
 # PiHat Firmware for JACDAC Hardware Testing 
-STM32F4 PiHat Firmware for Jacdac hardware testing https://github.com/microsoft/jacdac-hw-testing
+STM32F4 PiHat Firmware for Jacdac module hardware testing https://github.com/microsoft/jacdac-hw-testing
 
  Dev (recommended): /PiHat-Firmware/Build
  
