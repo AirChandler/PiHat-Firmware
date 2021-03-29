@@ -1,4 +1,4 @@
-PiHat Firmware for JACDAC Hardware Testing 
+#PiHat Firmware for JACDAC Hardware Testing 
  Dev (recommended): /PiHat-Firmware/Build
  
 	- build using: openocd -f flash.cfg
