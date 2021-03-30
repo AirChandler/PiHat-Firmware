@@ -30,6 +30,9 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+#define GPIO_PORT() ((GPIO_TypeDef *)(GPIOA_BASE + 0x400 * ((int)pin >> 4)))
+#define GPIO_PIN() (1 << ((uint32_t)pin & 0xf))
+
 //Max frame size 256 Bytes
 struct _jd_frame_t {
     //uint16_t frame_crc;
@@ -51,6 +54,7 @@ typedef struct _jd_packet_t jd_packet_t;
 
 void setPin();
 void getPin();
+void getButtons();
 void Error_Handler(void);
 
 #ifdef __cplusplus

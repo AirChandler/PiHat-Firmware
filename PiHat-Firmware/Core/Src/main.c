@@ -53,28 +53,14 @@ int main(void)
   MX_SPI1_Init();
   MX_RTC_Init();
   MX_TIM2_Init();
-  //Since we're SPI SLAVE, we need to receive first before send
-  HAL_SPI_Receive_DMA(&hspi1, (uint8_t *) &tempRecv, sizeof(tempSend));
-  //Indicate JACDAC in use every 500 sec
-  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+  //Initiate SPI comms
+  HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
   while (1)
   {
-    if(TIM2->CNT == 500){
-      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+    //Indicate MCU Status every 500ms roughly...
+    if(TIM2->CNT ==499){
+      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
     }
-  }
-}
-
-// SPI RX complete interrupt callback
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-  if(tempRecv.data[0] == 1){
-    setPin();
-    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
-  } else if (tempRecv.data[0] == 2){
-    getPin();
-  } else {
-    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
   }
 }
 
@@ -86,6 +72,8 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
     HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
   } else if (tempRecv.data[0] == 2){
     getPin();
+  } else if (tempRecv.data[0] == 3){
+    getButtons();
   } else {
     HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
   }
@@ -286,7 +274,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   /*Configure GPIO pin : JD_COMMS_Status */
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
