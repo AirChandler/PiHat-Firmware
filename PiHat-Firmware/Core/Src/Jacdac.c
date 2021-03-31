@@ -1,26 +1,46 @@
 //Host service
 //Control service
 #include "main.h"
+#include "mbed_pinmap.h"
+#include "stm32f4xx_ll_gpio.h"
+#include "pin_device.h"
 extern jd_frame_t tempSend, tempRecv;
 extern SPI_HandleTypeDef hspi1;
 uint16_t buttons[] = {
     0, // menu
     23, // A
     22, // B
-    17, // left
+    17, // left 
     15, // right
     8, // up
     10, // down
 };
 
+extern void pin_function(uint16_t pin, int data);
+
 void setPin(){
     uint16_t pin = tempRecv.data[1];
-    uint8_t pull = tempRecv.data[2];
-    if (pull){
+    uint8_t value = tempRecv.data[2];
+
+    // // clear previous mode
+    // GPIO_PORT()->MODER &= ~(0x2 << (2*pin));
+    // // set new mode (output)
+    // GPIO_PORT()->MODER |= (0x1 << (2*pin));
+    
+    // // push pull output
+    // GPIO_PORT()->OTYPER &= ~(0x1 << pin);
+
+    // // clear pull up
+    // GPIO_PORT()->PUPDR &= ~(0x2 << (2*pin));
+
+    if (value){
         GPIO_PORT()->BSRR = GPIO_PIN();
     } else {
         GPIO_PORT()->BSRR = GPIO_PIN() << 16;
     }
+
+    pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
+
     return;
 }
 

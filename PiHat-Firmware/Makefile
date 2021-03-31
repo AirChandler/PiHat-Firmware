@@ -34,6 +34,7 @@ BUILD_DIR = build
 C_SOURCES =  \
 Core/Src/Jacdac.c \
 Core/Src/main.c \
+Core/Src/pinmap.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/system_stm32f4xx.c \
 Core/Src/stm32f4xx_hal_msp.c \
