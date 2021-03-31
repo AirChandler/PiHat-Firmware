@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: ARM C/C++ CI Build Test
 
 on:
   push:
