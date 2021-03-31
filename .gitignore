@@ -1,1 +1,5 @@
-PiHat-Firmware/build
+PiHat-Firmware/tools/*.d
+PiHat-Firmware/tools/*.lst
+PiHat-Firmware/tools/*.o
+PiHat-Firmware/tools/*.bin
+PiHat-Firmware/tools/*.hex
