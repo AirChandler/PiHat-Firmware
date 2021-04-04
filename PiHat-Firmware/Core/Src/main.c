@@ -25,7 +25,9 @@ SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
 TIM_HandleTypeDef htim2;
-jd_frame_t tempSend, tempRecv;
+jd_frame_t frameSend, frameRecv;
+jd_packet_t pktSend, pktRecv;
+uint16_t broadcast_size = 0;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -54,7 +56,7 @@ int main(void)
   MX_RTC_Init();
   MX_TIM2_Init();
   //Initiate SPI comms
-  HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
+  HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
   while (1)
   {
     //Indicate MCU Status every 500ms roughly...
@@ -67,15 +69,26 @@ int main(void)
 // SPI TX, RX complete interrupt callback 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  if(tempRecv.data[0] == 1){
+  frameSend = frameRecv;
+  //De-reference struct pointer
+  pktRecv = *(jd_packet_t*) frameRecv.data;
+  pktSend = pktRecv;
+  if(pktRecv.service_command == 0){
+    broadcast_size = sizeof(frameRecv);
+    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(pktRecv.payload[0]));
+  } else if(pktRecv.service_command == 1){
     setPin();
-    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
-  } else if (tempRecv.data[0] == 2){
+    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
+  } else if (pktRecv.service_command == 2){
     getPin();
-  } else if (tempRecv.data[0] == 3){
+  } else if (pktRecv.service_command == 3){
     getButtons();
+  } else if (pktRecv.service_command == 3){
+    getAnalog();
+    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
   } else {
-    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempSend, (uint8_t *) &tempRecv, sizeof(tempSend));
+    // Command not implemented
+    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
   }
 }
 

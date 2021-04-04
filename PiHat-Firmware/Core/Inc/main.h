@@ -35,11 +35,11 @@ extern "C" {
 
 //Max frame size 256 Bytes
 struct _jd_frame_t {
-    //uint16_t frame_crc;
-    //uint8_t frame_size;
-    //unit8_t frame_flags;
-    //unint64_t device_identifier;
-    uint8_t data[4];
+    uint16_t frame_crc;
+    uint8_t frame_size;
+    uint8_t frame_flags;
+    uint64_t device_identifier;
+    uint8_t *data;
 } __attribute__((__packed__, aligned(4)));
 typedef struct _jd_frame_t jd_frame_t;
 
@@ -48,13 +48,14 @@ struct _jd_packet_t {
   uint8_t service_size;
   uint8_t service_index;
   uint16_t service_command;
-  uint8_t payload[236];
+  uint8_t *payload;
 } __attribute__((__packed__, aligned(4)));
 typedef struct _jd_packet_t jd_packet_t;
 
 void setPin();
 void getPin();
 void getButtons();
+void getAnalog();
 void Error_Handler(void);
 
 #ifdef __cplusplus

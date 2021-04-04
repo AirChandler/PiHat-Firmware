@@ -4,8 +4,10 @@
 #include "mbed_pinmap.h"
 #include "stm32f4xx_ll_gpio.h"
 #include "pin_device.h"
-extern jd_frame_t tempSend, tempRecv;
+extern jd_frame_t frameSend, frameRecv;
+extern jd_packet_t pktSend, pktRecv;
 extern SPI_HandleTypeDef hspi1;
+extern uint16_t broadcast_size;
 uint16_t buttons[] = {
     0, // menu
     23, // A
@@ -19,8 +21,8 @@ uint16_t buttons[] = {
 extern void pin_function(uint16_t pin, int data);
 
 void setPin(){
-    uint16_t pin = tempRecv.data[1];
-    uint8_t value = tempRecv.data[2];
+    uint16_t pin = pktRecv.payload[1];
+    uint8_t value = pktRecv.payload[2];
 
     // // clear previous mode
     // GPIO_PORT()->MODER &= ~(0x2 << (2*pin));
@@ -45,19 +47,20 @@ void setPin(){
 }
 
 void getPin(){
-    uint16_t pin = tempRecv.data[1];
-    uint8_t pull = tempRecv.data[3];
+    uint16_t pin = pktRecv.payload[1];
+    uint8_t pull = pktRecv.payload[3];
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = GPIO_PIN();
     GPIO_InitStruct.Pull = pull;
     HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
-    tempRecv.data[2] = HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
-    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempRecv, (uint8_t *) &tempRecv, sizeof(tempSend));
+    pktSend.payload[2] = HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
+    frameSend.data = &pktSend;
+    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
     return;
 }
 
 void getButtons(){
-    tempRecv.data[1] = 0;
+    pktSend.payload[1] = 0;
     for (int i = 0; i < (sizeof(buttons)/sizeof(uint16_t)); i++) {
         GPIO_InitTypeDef GPIO_InitStruct = {0};
         uint16_t pin = buttons[i];
@@ -73,10 +76,15 @@ void getButtons(){
             v = !HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
         }
         if (v) {
-            tempRecv.data[1] = i;
+            pktSend.payload[1] = i;
             break;
         }
     }
-    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempRecv, (uint8_t *) &tempRecv, sizeof(tempSend));
+    frameSend.data = &pktSend;
+    HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
     return;
+}
+
+void getAnalog(){
+
 }
