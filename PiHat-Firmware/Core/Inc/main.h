@@ -33,24 +33,24 @@ extern "C" {
 #define GPIO_PORT() ((GPIO_TypeDef *)(GPIOA_BASE + 0x400 * ((int)pin >> 4)))
 #define GPIO_PIN() (1 << ((uint32_t)pin & 0xf))
 
-//Max frame size 256 Bytes
-struct _jd_frame_t {
-    uint16_t frame_crc;
-    uint8_t frame_size;
-    uint8_t frame_flags;
-    uint64_t device_identifier;
-    uint8_t *data;
-} __attribute__((__packed__, aligned(4)));
-typedef struct _jd_frame_t jd_frame_t;
-
 //Max packet size 240 Bytes
 struct _jd_packet_t {
   uint8_t service_size;
   uint8_t service_index;
   uint16_t service_command;
-  uint8_t *payload;
+  uint8_t payload[236];
 } __attribute__((__packed__, aligned(4)));
 typedef struct _jd_packet_t jd_packet_t;
+
+//Max frame size 252 Bytes
+struct _jd_frame_t {
+    uint16_t frame_crc;
+    uint8_t frame_size;
+    uint8_t frame_flags;
+    uint64_t device_identifier;
+    jd_packet_t data;
+} __attribute__((__packed__, aligned(4)));
+typedef struct _jd_frame_t jd_frame_t;
 
 void setPin();
 void getPin();

@@ -21,8 +21,8 @@ uint16_t buttons[] = {
 extern void pin_function(uint16_t pin, int data);
 
 void setPin(){
-    uint16_t pin = pktRecv.payload[1];
-    uint8_t value = pktRecv.payload[2];
+    uint8_t pin = pktRecv.payload[0];
+    uint8_t value = pktRecv.payload[1];
 
     // // clear previous mode
     // GPIO_PORT()->MODER &= ~(0x2 << (2*pin));
@@ -40,9 +40,7 @@ void setPin(){
     } else {
         GPIO_PORT()->BSRR = GPIO_PIN() << 16;
     }
-
     pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
-
     return;
 }
 
@@ -54,7 +52,7 @@ void getPin(){
     GPIO_InitStruct.Pull = pull;
     HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
     pktSend.payload[2] = HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
-    frameSend.data = &pktSend;
+    frameSend.data = pktSend;
     HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
     return;
 }
@@ -80,7 +78,7 @@ void getButtons(){
             break;
         }
     }
-    frameSend.data = &pktSend;
+    frameSend.data = pktSend;
     HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
     return;
 }

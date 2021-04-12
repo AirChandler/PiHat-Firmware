@@ -60,7 +60,7 @@ int main(void)
   while (1)
   {
     //Indicate MCU Status every 500ms roughly...
-    if(TIM2->CNT ==499){
+    if(TIM2->CNT == 499){
       HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
     }
   }
@@ -71,7 +71,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
   frameSend = frameRecv;
   //De-reference struct pointer
-  pktRecv = *(jd_packet_t*) frameRecv.data;
+  pktRecv = frameRecv.data;
   pktSend = pktRecv;
   if(pktRecv.service_command == 0){
     broadcast_size = sizeof(frameRecv);
@@ -83,7 +83,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
     getPin();
   } else if (pktRecv.service_command == 3){
     getButtons();
-  } else if (pktRecv.service_command == 3){
+  } else if (pktRecv.service_command == 4){
     getAnalog();
     HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &frameSend, (uint8_t *) &frameRecv, sizeof(frameSend));
   } else {
@@ -147,16 +147,9 @@ void SystemClock_Config(void)
 static void MX_RTC_Init(void)
 {
 
-  /* USER CODE BEGIN RTC_Init 0 */
-
-  /* USER CODE END RTC_Init 0 */
-
   RTC_TimeTypeDef sTime = {0};
   RTC_DateTypeDef sDate = {0};
 
-  /* USER CODE BEGIN RTC_Init 1 */
-
-  /* USER CODE END RTC_Init 1 */
   /** Initialize RTC Only
   */
   hrtc.Instance = RTC;
@@ -170,10 +163,6 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
-
-  /* USER CODE BEGIN Check_RTC_BKUP */
-
-  /* USER CODE END Check_RTC_BKUP */
 
   /** Initialize RTC and set the Time and Date
   */
@@ -195,9 +184,6 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN RTC_Init 2 */
-
-  /* USER CODE END RTC_Init 2 */
 
 }
 
@@ -208,14 +194,6 @@ static void MX_RTC_Init(void)
   */
 static void MX_SPI1_Init(void)
 {
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_SLAVE;
@@ -232,9 +210,6 @@ static void MX_SPI1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
 
 }
 
@@ -281,23 +256,17 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  /*Configure GPIO pin : JD_COMMS_Status */
+  /* Configure GPIO pin : MCU_LED & JD_COMMS_STATUS */
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
 }
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -305,13 +274,10 @@ static void MX_GPIO_Init(void)
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
@@ -324,11 +290,6 @@ void Error_Handler(void)
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
