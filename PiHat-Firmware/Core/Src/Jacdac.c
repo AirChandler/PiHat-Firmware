@@ -33,13 +33,15 @@ void setPin(){
     // // clear pull up
     // GPIO_PORT()->PUPDR &= ~(0x2 << (2*pin));
 
-    if (value){
+    if (value == 1){
         GPIO_PORT()->BSRR = GPIO_PIN();
+        pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
+    } else if(value == 2){
+        pin_function(pin, STM_PIN_DATA(STM_PIN_INPUT, GPIO_NOPULL, 0));
     } else {
         GPIO_PORT()->BSRR = GPIO_PIN() << 16;
+        pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
     }
-
-    pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
 
     return;
 }
