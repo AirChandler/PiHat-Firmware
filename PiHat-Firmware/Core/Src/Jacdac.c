@@ -37,7 +37,12 @@ void setPin(){
         GPIO_PORT()->BSRR = GPIO_PIN();
         pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
     } else if(value == 2){
-        pin_function(pin, STM_PIN_DATA(STM_PIN_INPUT, GPIO_NOPULL, 0));
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        GPIO_InitStruct.Pin = GPIO_Pin_5;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
+        //pin_function(pin, STM_PIN_DATA(STM_PIN_INPUT, GPIO_NOPULL, 0));
     } else {
         GPIO_PORT()->BSRR = GPIO_PIN() << 16;
         pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
