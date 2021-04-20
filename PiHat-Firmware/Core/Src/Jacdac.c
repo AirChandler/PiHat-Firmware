@@ -1,5 +1,6 @@
 //Host service
 //Control service
+//JACDAC service
 #include "main.h"
 #include "mbed_pinmap.h"
 #include "stm32f4xx_ll_gpio.h"
@@ -38,7 +39,7 @@ void setPin(){
         pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
     } else if(value == 2){
         GPIO_InitTypeDef GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = GPIO_Pin_5;
+        GPIO_InitStruct.Pin = GPIO_PIN_5;
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
