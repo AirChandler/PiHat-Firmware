@@ -30,8 +30,16 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-#define GPIO_PORT() ((GPIO_TypeDef *)(GPIOA_BASE + 0x400 * ((int)pin >> 4)))
-#define GPIO_PIN() (1 << ((uint32_t)pin & 0xf))
+//  Inline DEFINE functions
+//  pinMap- maps incremental GPIO pin numbering 
+//  from GPIO port A - F- A starts at 0
+#define pinMap(X)  ((uint32_t)(X) & 0xF)
+//  gpioPinMap- maps pin to it's corresponding
+//  position on GPIO bus
+#define gpioPinMap(X) (1 << ((uint32_t)X & 0xf))
+//  gpioPinPort- maps pin to it's corresponding
+//  port on the GPIO bus
+#define gpioPinPort(X) ((GPIO_TypeDef *)(GPIOA_BASE + 0x400 * ((int)X >> 4)))
 
 //Max frame size 256 Bytes
 struct _jd_frame_t {

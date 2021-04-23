@@ -6,6 +6,7 @@
 #include "stm32f4xx_ll_gpio.h"
 #include "pin_device.h"
 extern jd_frame_t tempSend, tempRecv;
+extern uint8_t send[4], recv[4];
 extern SPI_HandleTypeDef hspi1;
 uint16_t buttons[] = {
     0, // menu
@@ -20,8 +21,8 @@ uint16_t buttons[] = {
 extern void pin_function(uint16_t pin, int data);
 
 void setPin(){
-    uint16_t pin = tempRecv.data[1];
-    uint8_t value = tempRecv.data[2];
+    uint16_t pin = recv[1];
+    uint8_t value = recv[2];
 
     // // clear previous mode
     // GPIO_PORT()->MODER &= ~(0x2 << (2*pin));
@@ -33,33 +34,36 @@ void setPin(){
 
     // // clear pull up
     // GPIO_PORT()->PUPDR &= ~(0x2 << (2*pin));
-
     if (value == 1){
-        GPIO_PORT()->BSRR = GPIO_PIN();
+        gpioPinPort(recv[1])->BSRR = gpioPinMap(recv[1]);
         pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
     } else if(value == 2){
+        send[0] = pinMap(recv[1]);
+        send[1] = gpioPinMap(recv[1]);
+        send[2] = value;
+        HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &send, (uint8_t *) &recv, sizeof(send));
+        return;
         GPIO_InitTypeDef GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = GPIO_PIN_5;
+        GPIO_InitStruct.Pin = GPIO_PIN_7;
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
         //pin_function(pin, STM_PIN_DATA(STM_PIN_INPUT, GPIO_NOPULL, 0));
     } else {
-        GPIO_PORT()->BSRR = GPIO_PIN() << 16;
+        gpioPinPort(recv[1])->BSRR = gpioPinMap(recv[1]) << 16; 
         pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
     }
-
     return;
 }
 
 void getPin(){
-    uint16_t pin = tempRecv.data[1];
+    //uint16_t pin = tempRecv.data[1];
     uint8_t pull = tempRecv.data[3];
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin = GPIO_PIN();
+    GPIO_InitStruct.Pin = gpioPinPort(recv[1]);
     GPIO_InitStruct.Pull = pull;
-    HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
-    tempRecv.data[2] = HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
+    HAL_GPIO_Init(gpioPinPort(recv[1]), &GPIO_InitStruct);
+    tempRecv.data[2] = HAL_GPIO_ReadPin(gpioPinPort(recv[1]), gpioPinMap(recv[1]));
     HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &tempRecv, (uint8_t *) &tempRecv, sizeof(tempSend));
     return;
 }
@@ -69,16 +73,16 @@ void getButtons(){
     for (int i = 0; i < (sizeof(buttons)/sizeof(uint16_t)); i++) {
         GPIO_InitTypeDef GPIO_InitStruct = {0};
         uint16_t pin = buttons[i];
-        GPIO_InitStruct.Pin = GPIO_PIN();
+        GPIO_InitStruct.Pin = gpioPinMap(recv[1]);
         int v = 0;
         if (i == 0) {
             GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-            HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
-            v = HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
+            HAL_GPIO_Init(gpioPinPort(recv[1]), &GPIO_InitStruct);
+            v = HAL_GPIO_ReadPin(gpioPinPort(recv[1]), gpioPinMap(recv[1]));
         } else {
             GPIO_InitStruct.Pull = GPIO_PULLUP;
-            HAL_GPIO_Init(GPIO_PORT(), &GPIO_InitStruct);
-            v = !HAL_GPIO_ReadPin(GPIO_PORT(), GPIO_PIN());
+            HAL_GPIO_Init(gpioPinPort(recv[1]), &GPIO_InitStruct);
+            v = !HAL_GPIO_ReadPin(gpioPinPort(recv[1]), gpioPinMap(recv[1]));
         }
         if (v) {
             tempRecv.data[1] = i;
