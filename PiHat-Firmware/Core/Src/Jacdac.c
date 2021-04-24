@@ -23,35 +23,21 @@ extern void pin_function(uint16_t pin, int data);
 void setPin(){
     uint16_t pin = recv[1];
     uint8_t value = recv[2];
-
-    // // clear previous mode
-    // GPIO_PORT()->MODER &= ~(0x2 << (2*pin));
-    // // set new mode (output)
-    // GPIO_PORT()->MODER |= (0x1 << (2*pin));
-    
-    // // push pull output
-    // GPIO_PORT()->OTYPER &= ~(0x1 << pin);
-
-    // // clear pull up
-    // GPIO_PORT()->PUPDR &= ~(0x2 << (2*pin));
-    if (value == 1){
-        gpioPinPort(recv[1])->BSRR = gpioPinMap(recv[1]);
-        pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
-    } else if(value == 2){
-        send[0] = pinMap(recv[1]);
-        send[1] = gpioPinMap(recv[1]);
-        send[2] = value;
-        HAL_SPI_TransmitReceive_DMA(&hspi1, (uint8_t *) &send, (uint8_t *) &recv, sizeof(send));
-        return;
+    if(value != 3){
         GPIO_InitTypeDef GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = GPIO_PIN_7;
-        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pin = gpioPinMap(pin);
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-        //pin_function(pin, STM_PIN_DATA(STM_PIN_INPUT, GPIO_NOPULL, 0));
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        if (value == 0){
+            HAL_GPIO_WritePin(GPIOB, gpioPinMap(pin), GPIO_PIN_RESET);
+        } else if (value == 1){
+            HAL_GPIO_WritePin(GPIOB, gpioPinMap(pin), GPIO_PIN_SET);
+        } else if(value == 2){
+            GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        }
+        HAL_GPIO_Init(gpioPinPort(pin), &GPIO_InitStruct);
     } else {
-        gpioPinPort(recv[1])->BSRR = gpioPinMap(recv[1]) << 16; 
-        pin_function(pin, STM_PIN_DATA(STM_PIN_OUTPUT, GPIO_NOPULL, 0));
+        HAL_GPIO_DeInit(gpioPinPort(pin), gpioPinMap(pin));
     }
     return;
 }
@@ -60,7 +46,7 @@ void getPin(){
     //uint16_t pin = tempRecv.data[1];
     uint8_t pull = tempRecv.data[3];
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin = gpioPinPort(recv[1]);
+    GPIO_InitStruct.Pin = gpioPinMap(recv[1]);
     GPIO_InitStruct.Pull = pull;
     HAL_GPIO_Init(gpioPinPort(recv[1]), &GPIO_InitStruct);
     tempRecv.data[2] = HAL_GPIO_ReadPin(gpioPinPort(recv[1]), gpioPinMap(recv[1]));
